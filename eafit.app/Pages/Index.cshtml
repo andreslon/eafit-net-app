@@ -2,9 +2,17 @@
 @model IndexModel
 @{
     ViewData["Title"] = "Home page";
+    var environment = System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+    var author = System.Environment.GetEnvironmentVariable("AUTHOR");
+    var connection = System.Environment.GetEnvironmentVariable("SQL_CONNECTION");
 }
 
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
+    <b>Environment:</b> @environment
+    <br/>
+    <b>Author:</b> @author
+    <br/>
+    <b>Connection:</b> @connection
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
