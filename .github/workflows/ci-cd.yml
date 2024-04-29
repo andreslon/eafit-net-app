@@ -81,12 +81,20 @@ jobs:
       - name: Configure Docker to use the gcloud command-line tool as a credential helper
         run: gcloud auth configure-docker
 
-      - name: Deploy to GKE
-        uses: GoogleCloudPlatform/github-actions/gke-deploy@v0.2.0
+      - name: Connect to GKE
+        uses: google-github-actions/get-gke-credentials@v0
         with:
-          cluster: ${{ env.GKE_CLUSTER }}
-          location: ${{ env.GKE_ZONE }}
-          manifests: |
-            k8s/configmap.yml
-            k8s/deployment.yml
-            k8s/service.yml
+          cluster_name: ${{ env.GKE_CLUSTER }}
+          location: ${{ env.GKE_ZONE }}        
+
+      - name: Deploy Configmap to EKS
+        working-directory: ./  
+        run: kubectl apply -f ./k8s/configmap.yml
+
+      - name: Deploy App to EKS
+        working-directory: ./
+        run: kubectl apply -f ./k8s/deployment.yml 
+
+      - name: Deploy Service to EKS
+        working-directory: ./
+        run: kubectl apply -f ./k8s/service.yml         
