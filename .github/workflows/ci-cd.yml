@@ -17,13 +17,10 @@ env:
   GCP_REGISTRY: us-central1-docker.pkg.dev
   GCP_REPOSITORY: eafit-repository
   GCP_PROJECT_ID: labs-421117
-
-#   GCP_CLUSTER_NAME: ${{ vars.EKS_CLUSTER_NAME }}  
-  
-  ASPNETCORE_ENVIRONMENT: ${{ vars.ASPNETCORE_ENVIRONMENT }}
-  AUTHOR: ${{ vars.AUTHOR }}
+  ASPNETCORE_ENVIRONMENT: Development
+  AUTHOR: GitHub Actions
   SQL_CONNECTION: ${{ secrets.SQL_CONNECTION }}
-         
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -39,53 +36,13 @@ jobs:
       - name: Login to Google Artifact Registry
         uses: docker/login-action@v1 
         with:
-            registry: $GCP_REGISTRY
-            username: _json_key
-            password: ${{ secrets.GOOGLE_CLOUD_CREDENTIALS }}
+          registry: ${{ env.GCP_REGISTRY }}
+          username: _json_key
+          password: ${{ secrets.GOOGLE_CLOUD_CREDENTIALS }}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
-            context: .
-            push: true
-            tags: $GCP_REGISTRY/$GCP_PROJECT_ID/$GCP_REPOSITORY/$APP_NAME:$IMAGE_TAG
-
-#   deploy:
-#     runs-on: ubuntu-latest
-#     environment: 
-#       name: ${{ github.ref_name }}
-#     needs: build
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v2
-
-#       - name: Replace tokens
-#         uses: cschleiden/replace-tokens@v1.2
-#         with:
-#           files: '["k8s/*.yml"]'
- 
-#       - name: Configure AWS credentials
-#         uses: aws-actions/configure-aws-credentials@v1
-#         with:
-#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#           aws-region: ${{ vars.AWS_REGION }}
-
-#       - name: Configure kubectl
-#         run: |
-#           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-#           chmod +x kubectl
-#           sudo mv kubectl /usr/local/bin/
-
-#       - name: Set up kubeconfig
-#         id: kubeconfig-context
-#         run: |
-#           aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }}  --region ${{ vars.AWS_REGION }}
-
-#       - name: Deploy Configmap to EKS
-#         working-directory: ./  
-#         run: kubectl apply -f ./k8s/configmap.yml
-
-#       - name: Deploy App to EKS
-#         working-directory: ./
-#         run: kubectl apply -f ./k8s/deployment.yml 
+          context: .
+          push: true
+          tags: ${{ env.GCP_REGISTRY }}/${{ env.GCP_PROJECT_ID }}/${{ env.GCP_REPOSITORY }}:${{ env.IMAGE_TAG }}
