@@ -17,8 +17,11 @@ env:
   GCP_REGISTRY: us-central1-docker.pkg.dev
   GCP_REPOSITORY: eafit-repository
   GCP_PROJECT_ID: labs-421117
-  ASPNETCORE_ENVIRONMENT: Development
-  AUTHOR: GitHub Actions
+  GKE_CLUSTER: eafit-cluster
+  GKE_ZONE: us-central1
+
+  ASPNETCORE_ENVIRONMENT: ${{ vars.ASPNETCORE_ENVIRONMENT }}
+  AUTHOR: ${{ vars.AUTHOR }}
   SQL_CONNECTION: ${{ secrets.SQL_CONNECTION }}
 
 jobs:
@@ -68,21 +71,22 @@ jobs:
           username: _json_key
           password: ${{ secrets.GOOGLE_CLOUD_CREDENTIALS }}
 
-    #   - name: Configure kubectl
-    #     run: |
-    #       curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-    #       chmod +x kubectl
-    #       sudo mv kubectl /usr/local/bin/
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v0.2.1
+        with:
+          project_id: ${{ env.GCP_PROJECT }}
+          service_account_key: ${{ secrets.GOOGLE_CLOUD_CREDENTIALS }}
+          export_default_credentials: true
 
-    #   - name: Set up kubeconfig
-    #     id: kubeconfig-context
-    #     run: |
-    #       aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER_NAME }}  --region ${{ vars.AWS_REGION }}
+      - name: Configure Docker to use the gcloud command-line tool as a credential helper
+        run: gcloud auth configure-docker
 
-    #   - name: Deploy Configmap to EKS
-    #     working-directory: ./  
-    #     run: kubectl apply -f ./k8s/configmap.yml
-
-    #   - name: Deploy App to EKS
-    #     working-directory: ./
-    #     run: kubectl apply -f ./k8s/deployment.yml 
+      - name: Deploy to GKE
+        uses: GoogleCloudPlatform/github-actions/gke-deploy@v0.2.0
+        with:
+          cluster: ${{ env.GKE_CLUSTER }}
+          location: ${{ env.GKE_ZONE }}
+          manifests: |
+            k8s/configmap.yml
+            k8s/deployment.yml
+            k8s/service.yml
